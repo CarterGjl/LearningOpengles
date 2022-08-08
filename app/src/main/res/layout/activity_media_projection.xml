@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:voiceView="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:background="@android:color/holo_blue_bright"
     tools:context="com.example.mediaprojection.MediaProjectionActivity">
 
     <Button
@@ -25,6 +27,27 @@
 
     <ImageView
         android:id="@+id/imageView"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+<!--    <com.example.view.VoiceLineView-->
+<!--        android:id="@+id/voicLine"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:layout_width="300dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="@android:color/white"-->
+<!--        voiceView:maxVolume="200"-->
+<!--        voiceView:middleLine="@android:color/black"-->
+<!--        voiceView:middleLineHeight="1dp"-->
+<!--        voiceView:fineness="three"-->
+<!--        voiceView:rectSpace="2dp"-->
+<!--        voiceView:rectWidth="5dp"-->
+<!--        voiceView:sensibility="five"-->
+<!--        voiceView:viewMode="rect"-->
+<!--        voiceView:voiceLine="@android:color/black"-->
+<!--        />-->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_ex"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 </LinearLayout>

@@ -91,7 +91,7 @@ class VideoDrawer : IDrawer {
             mWorldWidth != -1 && mWorldHeight != -1
         ) {
             mMatrix = FloatArray(16)
-            var prjMatrix = FloatArray(16)
+            val prjMatrix = FloatArray(16)
             val originRatio = mVideoWidth / mVideoHeight.toFloat()
             val worldRatio = mWorldWidth / mWorldHeight.toFloat()
             if (mWorldWidth > mWorldHeight) {

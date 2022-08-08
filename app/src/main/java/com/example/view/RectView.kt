@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.core.content.res.ResourcesCompat
 import com.example.myapplication.R
@@ -21,6 +22,9 @@ class RectView @JvmOverloads constructor(
     init {
         initDrawer()
     }
+    companion object{
+        private const val TAG = "RectView"
+    }
 
     private fun initDrawer() {
         paint.color = color
@@ -29,6 +33,14 @@ class RectView @JvmOverloads constructor(
 
     }
 
+    override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
+        super.onScrollChanged(l, t, oldl, oldt)
+
+    }
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        Log.d(TAG, "onLayout:left $left top $top right $right bottom $bottom ")
+    }
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawRect(0F, 0F, width.toFloat(), height.toFloat(),paint)
