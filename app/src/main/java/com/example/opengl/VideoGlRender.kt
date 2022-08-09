@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.example.opengl
 
 import android.opengl.GLES11Ext
@@ -29,22 +31,17 @@ class VideoGlRender : GLRenderer() {
 
     private fun initPos() {
         // initialize vertex byte buffer for shape coordinates
-        val bb = ByteBuffer.allocateDirect(squareCoords.size * 4)
-        bb.order(ByteOrder.nativeOrder())
-        vertexBuffer = bb.asFloatBuffer()
-        vertexBuffer?.put(squareCoords)
-        vertexBuffer?.position(0)
-
+        getVertices()
         // initialize byte buffer for the draw list
         val dlb = ByteBuffer.allocateDirect(drawOrder.size * 2)
         dlb.order(ByteOrder.nativeOrder())
         drawListBuffer = dlb.asShortBuffer()
         drawListBuffer?.put(drawOrder)
         drawListBuffer?.position(0)
-        val bb2 = ByteBuffer.allocateDirect(textureVertices.size * 4)
+        val bb2 = ByteBuffer.allocateDirect(TEXTURE_FRONT.size * 4)
         bb2.order(ByteOrder.nativeOrder())
         textureVerticesBuffer = bb2.asFloatBuffer()
-        textureVerticesBuffer?.put(textureVertices)
+        textureVerticesBuffer?.put(TEXTURE_FRONT)
         textureVerticesBuffer?.position(0)
 
         mProgram = createProgram()
@@ -55,7 +52,33 @@ class VideoGlRender : GLRenderer() {
 
     }
 
+    /**
+     * 获取图形的顶点
+     * 特别提示：由于不同平台字节顺序不同数据单元不是字节的一定要经过ByteBuffer
+     * 转换，关键是要通过ByteOrder设置nativeOrder()，否则有可能会出问题
+     *
+     * @return 顶点Buffer
+     */
+    private fun getVertices() {
+        // 创建顶点坐标数据缓冲
+        // squareCoords.length*4是因为一个float占四个字节
+        val bb = ByteBuffer.allocateDirect(squareCoords.size * 4)
+        // 设置字节顺序
+        bb.order(ByteOrder.nativeOrder())
+        // 转换为Float型缓冲
+        vertexBuffer = bb.asFloatBuffer()
+        // 向缓冲区中放入顶点坐标数据
+        vertexBuffer?.put(squareCoords)
+        // 设置缓冲区起始位置
+        vertexBuffer?.position(0)
+    }
+
+    /***
+     * 创建着色器程序
+     */
     private fun createProgram(): Int {
+        // 初始化着色器
+        // 基于顶点着色器与片元着色器创建程序
         // 加载顶点着色器
         val vertexShader: Int = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
         // 加载片元着色器
@@ -82,7 +105,7 @@ class VideoGlRender : GLRenderer() {
             createProgram = 0
         }
         Log.d(TAG, "initPos: ${linkStatus[0]}")
-        return createProgram;
+        return createProgram
     }
 
     override fun onDestroy() {
@@ -101,15 +124,16 @@ class VideoGlRender : GLRenderer() {
 
     private val fragmentShaderCode = """
         #extension GL_OES_EGL_image_external : require
-        precision mediump float;varying vec2 textureCoordinate;
+        precision mediump float;
+        varying vec2 textureCoordinate;
         uniform samplerExternalOES s_texture;
-        void main() {  gl_FragColor = texture2D( s_texture, textureCoordinate );
+        void main() {  
+           gl_FragColor = texture2D( s_texture, textureCoordinate );
         }
         """.trimIndent()
 
-    private var vertexBuffer: FloatBuffer? =
-        null
-    var textureVerticesBuffer: FloatBuffer? = null
+    private var vertexBuffer: FloatBuffer? = null
+    private var textureVerticesBuffer: FloatBuffer? = null
     private var drawListBuffer: ShortBuffer? = null
     private var mProgram = 0
     private var mPositionHandle = 0
@@ -131,7 +155,16 @@ class VideoGlRender : GLRenderer() {
         1.0f, 1.0f
     )
 
-    private var textureVertices = floatArrayOf(
+    // 前置摄像头使用的纹理坐标
+    private val TEXTURE_FRONT =  floatArrayOf(
+        1.0f, 1.0f,
+        0.0f, 1.0f,
+        0.0f, 0.0f,
+        1.0f, 0.0f
+    )
+
+    // 后置摄像头使用的纹理坐标
+    private val textureVertices = floatArrayOf(
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
@@ -147,8 +180,7 @@ class VideoGlRender : GLRenderer() {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId)
         // 使用某套shader程序
         GLES20.glUseProgram(mProgram)
-
-
+        GLES20.glEnable(GLES20.GL_CULL_FACE); // 启动剔除
         // Enable a handle to the triangle vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle)
 
@@ -156,6 +188,7 @@ class VideoGlRender : GLRenderer() {
 
         // Prepare the <insert shape here> coordinate data
         // 为画笔指定顶点位置数据(vPosition)
+        // GLES20.glVertexAttribPointer(属性索引,单顶点大小,数据类型,归一化,顶点间偏移量,顶点Buffer)
         GLES20.glVertexAttribPointer(
             mPositionHandle,
             COORDS_PER_VERTEX,
@@ -185,16 +218,38 @@ class VideoGlRender : GLRenderer() {
         GLES20.glDisableVertexAttribArray(mPositionHandle)
         GLES20.glDisableVertexAttribArray(mTextureCoordHandle)
     }
-
-    private fun loadShader(type: Int, shaderCode: String): Int {
+    
+    /**
+     * 加载制定shader的方法
+     * @param shaderType shader的类型  GLES20.GL_VERTEX_SHADER GLES20.GL_FRAGMENT_SHADER
+     * @see GLES20.GL_VERTEX_SHADER
+     * @see GLES20.GL_FRAGMENT_SHADER
+     * @param shaderCode shader的脚本
+     * @return shader索引
+     */
+    private fun loadShader(shaderType: Int, shaderCode: String): Int {
 
         // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
         // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
-        val shader = GLES20.glCreateShader(type)
+        // 创建一个新shader
+        var shader = GLES20.glCreateShader(shaderType)
 
         // add the source code to the shader and compile it
         GLES20.glShaderSource(shader, shaderCode)
         GLES20.glCompileShader(shader)
+        // 存放编译成功shader数量的数组
+        // 存放编译成功shader数量的数组
+        val compiled = IntArray(1)
+        // 获取Shader的编译情况
+        // 获取Shader的编译情况
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0)
+        if (compiled[0] == GLES20.GL_FALSE) {
+            // 若编译失败则显示错误日志并删除此shader
+            Log.e("ES20_ERROR", "Could not compile shader $shaderType:")
+            Log.e("ES20_ERROR", GLES20.glGetShaderInfoLog(shader))
+            GLES20.glDeleteShader(shader)
+            shader = 0
+        }
         return shader
     }
 

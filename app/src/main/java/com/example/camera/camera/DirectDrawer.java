@@ -119,8 +119,16 @@ public class DirectDrawer {
         // Disable vertex array  
         GLES20.glDisableVertexAttribArray(mPositionHandle);
         GLES20.glDisableVertexAttribArray(mTextureCoordHandle);
-    }  
-      
+    }
+
+
+    /**
+     *
+     * {@link GLES20.GL_VERTEX_SHADER}
+     * @param type
+     * @param shaderCode
+     * @return
+     */
     private  int loadShader(int type, String shaderCode){
   
         // create a vertex shader type (GLES20.GL_VERTEX_SHADER)  

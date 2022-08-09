@@ -22,8 +22,8 @@
 
     <SurfaceView
         android:id="@+id/sf1"
-        android:layout_width="500dp"
-        android:layout_height="500dp"/>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
     <SurfaceView
         android:id="@+id/sf12"

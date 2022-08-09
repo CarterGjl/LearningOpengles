@@ -1,5 +1,6 @@
 package com.example.opengl;
 
+import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 
 import java.nio.ByteBuffer;
