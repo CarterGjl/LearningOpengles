@@ -112,14 +112,14 @@ class CameraActivity : AppCompatActivity() {
 
             override fun surfaceChanged(p0: SurfaceHolder, p1: Int, width: Int, height: Int) {
                 videoGlRender.addSurface(GLSurface(p0.surface, width, height))
-                mSurface.setOnFrameAvailableListener {
-                    videoGlRender.requestRender()
-                }
             }
 
             override fun surfaceDestroyed(p0: SurfaceHolder) {
             }
         })
+        mSurface.setOnFrameAvailableListener {
+            videoGlRender.requestRender()
+        }
 
 //        val cameraGlSurfaceView1 = CameraGlSurfaceView(this, object : DuMixRenderCallback {
 //            override fun onSurfaceCreated(cameraTex: SurfaceTexture, arTex: SurfaceTexture?) {

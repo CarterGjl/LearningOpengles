@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 
+@SuppressWarnings("unused")
 public abstract class GLRenderer extends Thread {
     private static final String TAG = "GLThread";
     private EGLConfig eglConfig = null;
@@ -22,7 +23,7 @@ public abstract class GLRenderer extends Thread {
     private EGLContext eglContext = EGL14.EGL_NO_CONTEXT;
 
     private SurfaceTexture surfaceTexture;
-    private ArrayBlockingQueue<Event> eventQueue;
+    private final ArrayBlockingQueue<Event> eventQueue;
     private final List<GLSurface> outputSurfaces;
     private boolean rendering;
     private boolean isRelease;
@@ -125,8 +126,7 @@ public abstract class GLRenderer extends Thread {
     }
 
     public void requestRender() {
-        Log.d(TAG, "requestRender: ");
-        postRunnable(() -> eventQueue.offer(new Event(Event.REQ_RENDER)));
+        eventQueue.offer(new Event(Event.REQ_RENDER));
     }
 
     /**
@@ -197,7 +197,6 @@ public abstract class GLRenderer extends Thread {
             if (!EGL14.eglMakeCurrent(eglDisplay, output.eglSurface, output.eglSurface, eglContext)) {
                 Log.e(TAG, "eglMakeCurrent: error");
             }
-            Log.e(TAG, "render: " + getEGLErrorString());
 
             // 设置视窗大小及位置
             GLES20.glViewport(output.viewport.x, output.viewport.y, output.viewport.width, output.viewport.height);
@@ -319,7 +318,7 @@ public abstract class GLRenderer extends Thread {
     public abstract void onDestroy();
 
 
-    private static String getEGLErrorString() {
+    protected static String getEGLErrorString() {
         return GLUtils.getEGLErrorString(EGL14.eglGetError());
     }
 

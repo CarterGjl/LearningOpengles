@@ -1,52 +1,19 @@
 package com.example.opengl
 
-import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
+import android.util.Log
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
-class VideoGlRender: GLRenderer() {
+private const val TAG = "VideoGlRender"
 
-    // 顶点坐标
-    private val mVertexCoors = floatArrayOf(
-        -1f, -1f,
-        1f, -1f,
-        -1f, 1f,
-        1f, 1f
-    )
-
-    // 纹理坐标
-    private val mTextureCoors = floatArrayOf(
-        0f, 1f,
-        1f, 1f,
-        0f, 0f,
-        1f, 0f
-    )
+class VideoGlRender : GLRenderer() {
 
     var mTextureId: Int = -1
-
-    private var mSurfaceTexture: SurfaceTexture? = null
-
-    private var mSftCb: ((SurfaceTexture) -> Unit)? = null
-
-    //矩阵变换接收者
-    private var mVertexMatrixHandler: Int = -1
-
-    // 顶点坐标接收者
-    private var mVertexPosHandler: Int = -1
-
-    // 纹理坐标接收者
-    private var mTexturePosHandler: Int = -1
-
-    // 纹理接收者
-    private var mTextureHandler: Int = -1
-
-    // 半透值接收者
-    private var mAlphaHandler: Int = -1
 
     override fun onCreated() {
         initPos()
@@ -79,32 +46,49 @@ class VideoGlRender: GLRenderer() {
         textureVerticesBuffer = bb2.asFloatBuffer()
         textureVerticesBuffer?.put(textureVertices)
         textureVerticesBuffer?.position(0)
+
+        mProgram = createProgram()
+        // get handle to vertex shader's vPosition member
+        // 获取着色器中的属性引用id(传入的字符串就是我们着色器脚本中的属性名)
+        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition")
+        mTextureCoordHandle = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate")
+
+    }
+
+    private fun createProgram(): Int {
+        // 加载顶点着色器
         val vertexShader: Int = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
+        // 加载片元着色器
         val fragmentShader: Int = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode)
-        mProgram = GLES20.glCreateProgram() // create empty OpenGL ES Program
-        GLES20.glAttachShader(mProgram, vertexShader) // add the vertex shader to program
-        GLES20.glAttachShader(mProgram, fragmentShader) // add the fragment shader to program
-        GLES20.glLinkProgram(mProgram) // creates OpenGL ES program executables
+
+        // 创建程序
+        var createProgram = GLES20.glCreateProgram() // create empty OpenGL ES Program
+        // 若程序创建成功则向程序中加入顶点着色器与片元着色器
+        // 向程序中加入顶点着色器
+        GLES20.glAttachShader(createProgram, vertexShader) // add the vertex shader to program
+        // 向程序中加入片元着色器
+        GLES20.glAttachShader(createProgram, fragmentShader) // add the fragment shader to program
+        // 链接程序
+        GLES20.glLinkProgram(createProgram) // creates OpenGL ES program executables
+        // 存放链接成功program数量的数组
+        val linkStatus = IntArray(1)
+        // 获取program的链接情况
+        GLES20.glGetProgramiv(createProgram, GLES20.GL_LINK_STATUS, linkStatus, 0)
+        // 若链接失败则报错并删除程序
+        if (linkStatus[0] != GLES20.GL_TRUE) {
+            Log.e("ES20_ERROR", "Could not link program: ")
+            Log.e("ES20_ERROR", GLES20.glGetProgramInfoLog(createProgram))
+            GLES20.glDeleteProgram(createProgram)
+            createProgram = 0
+        }
+        Log.d(TAG, "initPos: ${linkStatus[0]}")
+        return createProgram;
     }
 
     override fun onDestroy() {
 
     }
 
-
-    // 片元着色器
-    private fun getFragmentShader(): String {
-        //一定要加换行"\n"，否则会和下一行的precision混在一起，导致编译出错
-        return "#extension GL_OES_EGL_image_external : require\n" +
-                "precision mediump float;" +
-                "varying vec2 vCoordinate;" +
-                "varying float inAlpha;" +
-                "uniform samplerExternalOES uTexture;" +
-                "void main() {" +
-                "  vec4 color = texture2D(uTexture, vCoordinate);" +
-                "  gl_FragColor = vec4(color.r, color.g, color.b, inAlpha);" +
-                "}"
-    }
 
     private val vertexShaderCode = "attribute vec4 vPosition;" +
             "attribute vec2 inputTextureCoordinate;" +
@@ -125,7 +109,7 @@ class VideoGlRender: GLRenderer() {
 
     private var vertexBuffer: FloatBuffer? =
         null
-    var textureVerticesBuffer:FloatBuffer? = null
+    var textureVerticesBuffer: FloatBuffer? = null
     private var drawListBuffer: ShortBuffer? = null
     private var mProgram = 0
     private var mPositionHandle = 0
@@ -140,14 +124,14 @@ class VideoGlRender: GLRenderer() {
     private val vertexStride = COORDS_PER_VERTEX * 4 // 4 bytes per vertex
 
 
-    var squareCoords = floatArrayOf(
+    private var squareCoords = floatArrayOf(
         -1.0f, 1.0f,
         -1.0f, -1.0f,
         1.0f, -1.0f,
         1.0f, 1.0f
     )
 
-    var textureVertices = floatArrayOf(
+    private var textureVertices = floatArrayOf(
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
@@ -155,18 +139,23 @@ class VideoGlRender: GLRenderer() {
     )
 
 
-    fun draw() {
-        GLES20.glUseProgram(mProgram)
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId)
+    private fun draw() {
 
-        // get handle to vertex shader's vPosition member
-        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition")
+        // 激活指定纹理单元
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        // 绑定纹理ID到纹理单元
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId)
+        // 使用某套shader程序
+        GLES20.glUseProgram(mProgram)
+
 
         // Enable a handle to the triangle vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle)
 
+        GLES20.glEnableVertexAttribArray(mTextureCoordHandle)
+
         // Prepare the <insert shape here> coordinate data
+        // 为画笔指定顶点位置数据(vPosition)
         GLES20.glVertexAttribPointer(
             mPositionHandle,
             COORDS_PER_VERTEX,
@@ -175,12 +164,7 @@ class VideoGlRender: GLRenderer() {
             vertexStride,
             vertexBuffer
         )
-        mTextureCoordHandle = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate")
-        GLES20.glEnableVertexAttribArray(mTextureCoordHandle)
 
-//        textureVerticesBuffer.clear();
-//        textureVerticesBuffer.put( transformTextureCoordinates( textureVertices, mtx ));
-//        textureVerticesBuffer.position(0);
         GLES20.glVertexAttribPointer(
             mTextureCoordHandle,
             COORDS_PER_VERTEX,
@@ -189,6 +173,7 @@ class VideoGlRender: GLRenderer() {
             vertexStride,
             textureVerticesBuffer
         )
+        // 绘制
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,
             drawOrder.size,
@@ -213,7 +198,7 @@ class VideoGlRender: GLRenderer() {
         return shader
     }
 
-    private fun transformTextureCoordinates(coords: FloatArray, matrix: FloatArray): FloatArray? {
+    private fun transformTextureCoordinates(coords: FloatArray, matrix: FloatArray): FloatArray {
         val result = FloatArray(coords.size)
         val vt = FloatArray(4)
         var i = 0
