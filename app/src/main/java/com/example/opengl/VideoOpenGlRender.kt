@@ -4,6 +4,7 @@ package com.example.opengl
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLUtils
@@ -21,7 +22,7 @@ import java.nio.ShortBuffer
 
 private const val TAG = "VideoGlRender"
 
-class VideoGlRender : GLRenderer() {
+class VideoOpenGlRender : OpenglRender() {
 
     var mTextureId: Int = -1
 
@@ -35,13 +36,12 @@ class VideoGlRender : GLRenderer() {
         loadWaterTexture = loadTexture(ChatApplication.context, R.drawable.test)
     }
 
-    override fun onUpdate() {
-    }
-
-    override fun onDrawFrame(outputSurface: GLSurface?) {
+    override fun onDrawFrame(output: GLSurface) {
         draw()
     }
 
+    override fun onUpdate() {
+    }
 
     private fun initPos() {
         // initialize vertex byte buffer for shape coordinates
@@ -259,7 +259,6 @@ class VideoGlRender : GLRenderer() {
         // 存放编译成功shader数量的数组
         val compiled = IntArray(1)
         // 获取Shader的编译情况
-        // 获取Shader的编译情况
         GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0)
         if (compiled[0] == GLES20.GL_FALSE) {
             // 若编译失败则显示错误日志并删除此shader
@@ -321,5 +320,6 @@ class VideoGlRender : GLRenderer() {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         return textureObjectIds[0]
     }
+
 
 }

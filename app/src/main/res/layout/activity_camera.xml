@@ -30,8 +30,8 @@
         android:layout_width="300dp"
         android:layout_height="300dp"/>
 
-    <SurfaceView
-        android:id="@+id/sf13"
+    <ImageView
+        android:id="@+id/imageView"
         android:layout_width="100dp"
         android:layout_height="100dp"/>
 

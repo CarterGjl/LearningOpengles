@@ -9,6 +9,9 @@
         <item name="android:navigationBarColor">
             @android:color/transparent
         </item>
+        <item name="android:statusBarColor">
+            @android:color/transparent
+        </item>
 
         <!--        &lt;!&ndash; Optional, if drawing behind the status bar too &ndash;&gt;-->
         <!--        <item name="android:statusBarColor">-->

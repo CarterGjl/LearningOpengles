@@ -50,6 +50,7 @@ public class ShaderUtil {
         //加载片元着色器
         int pixelShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource);
         if (pixelShader == 0) {
+            Log.e("ES20_ERROR", "创建shader 失败" + Thread.currentThread().getName());
             return 0;
         }
 
@@ -83,7 +84,7 @@ public class ShaderUtil {
     //检查每一步操作是否有错误的方法
     public static void checkGlError(String op) {
         int error;
-        while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+        if ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
             Log.e("ES20_ERROR", op + ": glError " + error);
             throw new RuntimeException(op + ": glError " + error);
         }
@@ -94,7 +95,7 @@ public class ShaderUtil {
         String result = null;
         try {
             InputStream in = r.getAssets().open(fname);
-            int ch = 0;
+            int ch;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             while ((ch = in.read()) != -1) {
                 baos.write(ch);
