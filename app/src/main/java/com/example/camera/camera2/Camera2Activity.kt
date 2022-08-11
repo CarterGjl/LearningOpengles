@@ -2,23 +2,20 @@ package com.example.camera.camera2
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.myapplication.R
-import kotlinx.android.synthetic.main.activity_camera2.*
+import com.example.myapplication.databinding.ActivityCamera2Binding
 
 class Camera2Activity : AppCompatActivity() {
 
-    companion object {
-        private const val TAG = "Camera2Activity"
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera2)
-        val camera2Helper = Camera2Helper(this, tv1)
-        btnOpen.setOnClickListener {
+        val activityCamera2Binding: ActivityCamera2Binding =
+            ActivityCamera2Binding.inflate(layoutInflater)
+        setContentView(activityCamera2Binding.root)
+        val camera2Helper = Camera2Helper(this, activityCamera2Binding.tv1)
+        activityCamera2Binding.btnOpen.setOnClickListener {
             camera2Helper.open()
         }
-        btnClose.setOnClickListener {
+        activityCamera2Binding.btnClose.setOnClickListener {
             camera2Helper.closeCamera()
         }
     }

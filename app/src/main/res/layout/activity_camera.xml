@@ -1,38 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.camera.camera.CameraActivity">
-<!--    <SurfaceView-->
-<!--        android:id="@+id/sul"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"/>-->
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <Button
-            android:id="@+id/btn_remove_or_add"
-            android:text="remove or add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
 
     <SurfaceView
         android:id="@+id/sf1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
 
     <SurfaceView
         android:id="@+id/sf12"
         android:layout_width="300dp"
-        android:layout_height="300dp"/>
+        android:layout_height="300dp" />
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="100dp"
-        android:layout_height="100dp"/>
+        android:layout_height="100dp"
+        tools:ignore="ContentDescription" />
+    <TextView
+        android:id="@+id/tv_permission"
+        android:text="camera 权限未授权"
+        android:visibility="gone"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:ignore="HardcodedText" />
 
 </FrameLayout>

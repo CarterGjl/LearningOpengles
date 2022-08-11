@@ -22,7 +22,9 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_keyboard" />
+    <include
+        android:id="@+id/cc"
+        layout="@layout/content_keyboard" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"

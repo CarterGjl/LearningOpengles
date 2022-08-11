@@ -1,5 +1,6 @@
 package com.example.camera.camera
 
+import android.Manifest
 import android.graphics.Bitmap
 import android.graphics.Outline
 import android.graphics.Rect
@@ -14,13 +15,15 @@ import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewOutlineProvider
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
+import androidx.core.view.isVisible
 import com.example.myapplication.databinding.ActivityCameraBinding
 import com.example.opengl.GLSurface
 import com.example.opengl.ShaderUtil
 import com.example.opengl.VideoOpenGlRender
-import kotlinx.android.synthetic.main.fragment_first_test_motion_image.view.*
 import java.nio.IntBuffer
 import javax.microedition.khronos.opengles.GL10
 
@@ -41,12 +44,11 @@ class CameraActivity : AppCompatActivity() {
 
     // 相机预览高
     private val mPreviewHeight = 720
-    private lateinit var cameraGlSurfaceView: CameraGlSurfaceView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val inflate = ActivityCameraBinding.inflate(layoutInflater)
-        WindowCompat.setDecorFitsSystemWindows(window,false)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(inflate.root)
 
         val loadFromAssetsFile = ShaderUtil.loadFromAssetsFile("test_shader.glsl", resources)
@@ -54,20 +56,27 @@ class CameraActivity : AppCompatActivity() {
         Log.d(TAG, "onCreate: $loadFromAssetsFile")
         createTextureID = createTextureID()
         mSurface = SurfaceTexture(createTextureID)
-        openCamera(cameraTex = mSurface, false)
         initGlSurfaceView(inflate)
-        inflate.btnRemoveOrAdd.setOnClickListener {
-            if (inflate.root.indexOfChild(cameraGlSurfaceView) == -1) {
-                inflate.root.addView(cameraGlSurfaceView, 0)
-            } else {
-                inflate.root.removeView(cameraGlSurfaceView)
-            }
+        requestCameraPermission(inflate)
+        inflate.tvPermission.setOnClickListener {
+            requestCameraPermission(inflate)
         }
+    }
+
+    private fun requestCameraPermission(inflate: ActivityCameraBinding) {
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            if (it) {
+                inflate.tvPermission.visibility = View.GONE
+                openCamera(cameraTex = mSurface, false)
+            } else {
+                inflate.tvPermission.visibility = View.VISIBLE
+            }
+        }.launch(Manifest.permission.CAMERA)
     }
 
     override fun onResume() {
         super.onResume()
-        cameraHandlerThread!!.startPreview()
+        cameraHandlerThread?.startPreview()
     }
 
     override fun onStop() {
@@ -131,15 +140,17 @@ class CameraActivity : AppCompatActivity() {
 
             override fun surfaceChanged(p0: SurfaceHolder, p1: Int, width: Int, height: Int) {
                 videoGlRender.addSurface(GLSurface(p0.surface, width, height))
-                inflate.sf12.outlineProvider = object :ViewOutlineProvider(){
+                inflate.sf12.outlineProvider = object : ViewOutlineProvider() {
                     override fun getOutline(view: View, outline: Outline) {
                         val rect = Rect()
                         view.getGlobalVisibleRect(rect)
                         val leftMargin = 0
                         val topMargin = 0
-                        val newRect = Rect(leftMargin,topMargin, view.width,
-                            view.height)
-                        outline.setRoundRect(newRect,39f)
+                        val newRect = Rect(
+                            leftMargin, topMargin, view.width,
+                            view.height
+                        )
+                        outline.setRoundRect(newRect, 39f)
 
                     }
                 }
@@ -175,46 +186,6 @@ class CameraActivity : AppCompatActivity() {
         mSurface.setOnFrameAvailableListener {
             videoGlRender.requestRender()
         }
-
-//        val cameraGlSurfaceView1 = CameraGlSurfaceView(this, object : DuMixRenderCallback {
-//            override fun onSurfaceCreated(cameraTex: SurfaceTexture, arTex: SurfaceTexture?) {
-//
-////                openCamera(cameraTex = cameraTex, false)
-//            }
-//
-//            override fun onSurfaceChanged(width: Int, height: Int) {
-//            }
-//
-//        },"cameraGlSurfaceView1")
-//        cameraGlSurfaceView1.setTextureID(createTextureID)
-//        cameraGlSurfaceView1.setSurface(mSurface)
-//        cameraGlSurfaceView = CameraGlSurfaceView(this, object : DuMixRenderCallback {
-//            override fun onSurfaceCreated(cameraTex: SurfaceTexture, arTex: SurfaceTexture?) {
-//
-////                cameraTex.setOnFrameAvailableListener {
-////                    cameraGlSurfaceView.requestRender()
-////                    cameraGlSurfaceView1.requestRender()
-////                }
-////
-//            }
-//
-//            override fun onSurfaceChanged(width: Int, height: Int) {
-//            }
-
-//        },"cameraGlSurfaceView")
-//        cameraGlSurfaceView.setTextureID(createTextureID)
-////        cameraGlSurfaceView.setSurface(mSurface)
-//        mSurface.setOnFrameAvailableListener {
-//            cameraGlSurfaceView.requestRender()
-//            cameraGlSurfaceView1.requestRender()
-//        }
-//        val layoutParams = ViewGroup.LayoutParams(300, 300)
-//        inflate.root.addView(cameraGlSurfaceView, 0)
-//        inflate.root.addView(cameraGlSurfaceView1,layoutParams)
-        Handler(Looper.getMainLooper()).post {
-
-
-        }
     }
 
     private fun openCamera(cameraTex: SurfaceTexture, switchCam: Boolean) {
@@ -222,7 +193,6 @@ class CameraActivity : AppCompatActivity() {
             cameraHandlerThread = CameraHandlerThread()
         }
         cameraHandlerThread!!.stopPreview()
-        val windowRotation = windowManager.defaultDisplay.rotation
         if (switchCam) {
             cameraHandlerThread!!.switchCamera(
                 if (isCameraFront) 1 else 0,

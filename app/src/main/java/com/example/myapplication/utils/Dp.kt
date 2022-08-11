@@ -3,18 +3,13 @@ package com.example.myapplication.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Insets
 import android.graphics.Point
 import android.os.Build
 import android.util.TypedValue
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.DimenRes
-import androidx.annotation.RequiresApi
-import androidx.core.view.WindowCompat
 import com.example.myapplication.ChatApplication
 import com.example.myapplication.R
 
@@ -30,22 +25,38 @@ val Float.dp2px: Int
         val fl = scale * this + 0.5f
         return fl.toInt()
     }
-fun Context.getScreenWidth():Int{
+
+fun Context.getScreenWidth(): Int {
     val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-    val point = Point()
-    windowManager.defaultDisplay.getSize(point)
-    return point.y
+    return windowManager.currentWindowMetricsPointCompat().x
+}
+
+
+fun WindowManager.currentWindowMetricsPointCompat(): Point {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val windowInsets = currentWindowMetrics.windowInsets
+        var insets: Insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
+        windowInsets.displayCutout?.run {
+            insets = Insets.max(
+                insets,
+                Insets.of(safeInsetLeft, safeInsetTop, safeInsetRight, safeInsetBottom)
+            )
+        }
+        val insetsWidth = insets.right + insets.left
+        val insetsHeight = insets.top + insets.bottom
+        Point(
+            currentWindowMetrics.bounds.width() - insetsWidth,
+            currentWindowMetrics.bounds.height() - insetsHeight
+        )
+    } else {
+        Point().apply {
+            defaultDisplay.getSize(this)
+        }
+    }
 }
 fun Context.getScreenHeight():Int{
     val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-        val bottom = windowManager.currentWindowMetrics.bounds.bottom
-        println("R $bottom")
-    }
-    val point = Point()
-    windowManager.defaultDisplay.getSize(point)
-    println("old ${point.y}")
-    return point.y
+    return windowManager.currentWindowMetricsPointCompat().y
 }
 fun Context.makeTopToast(text: String, during: Int = Toast.LENGTH_SHORT) {
     val result = Toast(this)

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.util.Log
-import android.view.SurfaceHolder
 import androidx.appcompat.app.AppCompatActivity
 import com.example.decoder.BaseDecoder
 import com.example.decoder.Frame
@@ -12,8 +11,8 @@ import com.example.decoder.decode.AudioDecoder
 import com.example.decoder.decode.VideoDecoder
 import com.example.decoder.interfa.IDecoderStateListener
 import com.example.myapplication.R
+import com.example.myapplication.databinding.ActivityPlayerBinding
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.android.synthetic.main.content_player.*
 import java.util.concurrent.Executors
 
 class PlayerActivity : AppCompatActivity() {
@@ -21,21 +20,21 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_player)
+        val inflate = ActivityPlayerBinding.inflate(layoutInflater)
+        setContentView(inflate.root)
 
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
+        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener {
             videoDecoder?.goOn()
-
         }
 
-        initPlayer()
+        initPlayer(inflate)
     }
 
     companion object {
         private const val TAG = "PlayerActivity"
     }
 
-    private fun initPlayer() {
+    private fun initPlayer(inflate: ActivityPlayerBinding) {
         val path = Environment.getExternalStorageDirectory().absolutePath + "/mvtest.mp4"
 
         //创建线程池
@@ -91,7 +90,7 @@ class PlayerActivity : AppCompatActivity() {
 //            }
 //
 //        })
-        videoDecoder = VideoDecoder(path, sfv, null)
+        videoDecoder = VideoDecoder(path, inflate.content.sfv, null)
         //创建视频解码器
         threadPool.execute(videoDecoder)
         videoDecoder?.setStateListener(object : IDecoderStateListener {

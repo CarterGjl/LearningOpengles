@@ -1,6 +1,5 @@
 package com.example.myapplication
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.ContextMenu
 import android.view.Gravity
@@ -11,23 +10,24 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import com.example.People
+import com.example.myapplication.databinding.ActivityTextBinding
 import com.example.myapplication.utils.dp
 import com.example.myapplication.utils.getScreenHeight
 import com.example.myapplication.utils.makeTopToast
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_text.*
 
 
 class TextActivity : AppCompatActivity() {
-    private var people:People? = null
-    private var people1:People? = null
+    private var people: People? = null
+    private var people1: People? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_text)
+        val activityTextBinding = ActivityTextBinding.inflate(layoutInflater)
+        setContentView(activityTextBinding.root)
         getScreenHeight()
 
-        text_tv.setOnClickListener {
+        activityTextBinding.textTv.setOnClickListener {
             people = People()
             people1 = people
             people = null
@@ -42,7 +42,7 @@ class TextActivity : AppCompatActivity() {
 
 
 //内容的字体颜色与大小
-                val tvSnackbarText:TextView = view.findViewById(R.id.snackbar_text)
+                val tvSnackbarText: TextView = view.findViewById(R.id.snackbar_text)
                 tvSnackbarText.textSize = 17f
                 view.background = ResourcesCompat.getDrawable(
                     resources,
@@ -54,12 +54,6 @@ class TextActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-//        text_tv.postDelayed({
-//            startActivity(Intent(this, TextActivity::class.java))
-//        }, 5000)
-    }
     override fun onCreateContextMenu(
         menu: ContextMenu?,
         v: View?,

@@ -5,16 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.R
-import kotlinx.android.synthetic.main.child_view.view.*
-import kotlinx.android.synthetic.main.group_view.view.*
+import com.example.myapplication.databinding.ChildViewBinding
+import com.example.myapplication.databinding.GroupViewBinding
 
 class MyExpandedAdapter(context: Context) : ExpandedAdapter<String, String>() {
+
+    private lateinit var childViewBinding: ChildViewBinding
+    private lateinit var groupViewBinding: GroupViewBinding
+
     override fun onBindChildHolder(holder: RecyclerView.ViewHolder, position: Int, item: String) {
         if (holder is ChildViewHolder) {
             holder.bindData(item)
         }
     }
+
     private val layoutInflater = LayoutInflater.from(context)
     override fun onBindGroupHolder(
         holder: RecyclerView.ViewHolder,
@@ -30,34 +34,38 @@ class MyExpandedAdapter(context: Context) : ExpandedAdapter<String, String>() {
     override fun createRealViewHolder(view: View, viewType: Int): RecyclerView.ViewHolder {
         when (viewType) {
             VIEW_TYPE_PARENT -> {
-                return GroupViewHolder(view)
+                return GroupViewHolder(view, groupViewBinding)
             }
             VIEW_TYPE_CHILD -> {
-                return ChildViewHolder(view)
+                return ChildViewHolder(view, childViewBinding)
             }
             else -> {
-                return GroupViewHolder(view)
+                return GroupViewHolder(view, groupViewBinding)
             }
         }
     }
 
     override fun getGroupView(parent: ViewGroup): View {
-        return layoutInflater.inflate(R.layout.group_view, parent, false)
+        groupViewBinding = GroupViewBinding.inflate(layoutInflater, parent, false)
+        return groupViewBinding.root
     }
 
     override fun getChildView(parent: ViewGroup): View {
-        return layoutInflater.inflate(R.layout.child_view, parent, false)
+        childViewBinding = ChildViewBinding.inflate(layoutInflater, parent, false)
+        return childViewBinding.root
     }
 
-    class GroupViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class GroupViewHolder(view: View, private val groupViewBinding: GroupViewBinding) :
+        RecyclerView.ViewHolder(view) {
         fun bindData(expandedItem: ExpandedItem<String, String>) {
-            itemView.tv1.text = expandedItem.group
+            groupViewBinding.tv1.text = expandedItem.group
         }
     }
 
-    class ChildViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class ChildViewHolder(view: View, private val childViewBinding: ChildViewBinding) :
+        RecyclerView.ViewHolder(view) {
         fun bindData(expandedItem: String) {
-            itemView.tv2.text = expandedItem
+            childViewBinding.tv2.text = expandedItem
         }
     }
 }

@@ -6,24 +6,19 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Point
-import android.graphics.Rect
 import android.graphics.drawable.Icon
 import android.os.*
 import android.util.Log
 import android.view.MotionEvent
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import com.example.camera.camera.CameraActivity
-import com.example.myapplication.Abc.A
-import com.example.myapplication.Abc.B
+import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.local.User
 import com.example.myapplication.utils.UIEvent
-import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -35,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun showUser(user: User?) {
             println(user)
-            coreProcess.text = user.toString()
+            activityMainBinding.coreProcess.text = user.toString()
         }
     }
 
@@ -50,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var xSpringAnimation: SpringAnimation
     private lateinit var ySpringAnimation: SpringAnimation
-
+    private lateinit var activityMainBinding: ActivityMainBinding
     private val mConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder) {
             remoteService = IRemoteService.Stub.asInterface(service)
@@ -64,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
     }
     var xDiffLeft: Float? = null
-    var yDiffTop: Float? = null
+    private var yDiffTop: Float? = null
 
     override fun onDestroy() {
         super.onDestroy()
@@ -79,41 +74,8 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val b = B()
-        println(b is A)
-        Abc().test()
-        Log.d(TAG, "onCreate: ")
-//        PermissionDialog().show(supportFragmentManager, "permisson")
-        val rect = Rect()
-        val globalVisibleRect = btn.getGlobalVisibleRect(rect)
-        println("cover:$globalVisibleRect $rect")
-        initListener()
-        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        val point = Point()
-        wm.defaultDisplay.getRealSize(point)
-
-        val point1 = Point()
-        wm.defaultDisplay.getSize(point1)
-        println("屏幕宽度：${point.x}")
-        println("屏幕宽度1：${point1.x}")
-
-        println("屏幕高度：${point.y}")
-        println("屏幕高度1：${point1.y}")
-
-//        val availableProcessors = Runtime.getRuntime().availableProcessors()
-//        coreProcess.text = availableProcessors.toString()
-//        val threadPoolExecutor = ThreadPoolExecutor(
-//            availableProcessors, availableProcessors, 0L, TimeUnit.SECONDS,
-//            SynchronousQueue()
-//        )
-//        for (index in 1..100) {
-//            try {
-//                threadPoolExecutor.execute(Task(index.toString()))
-//            } catch (e: RejectedExecutionException) {
-//                Log.e(TAG, "RejectedExecutionException", e)
-//            }
-//        }
+        activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(activityMainBinding.root)
         try {
             val result = bindService(
                 Intent(this, RemoteService::class.java),
@@ -136,20 +98,20 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 
-        imageView.postDelayed({
+        activityMainBinding.imageView.postDelayed({
             val intArray = IntArray(2)
-            imageView.getLocationInWindow(intArray)
+            activityMainBinding.imageView.getLocationInWindow(intArray)
 
             for (i in intArray) {
                 println("getLocationInWindow$i")
             }
 
         }, 1000)
-        coreProcess.setOnClickListener {
+        activityMainBinding.coreProcess.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             val activity = PendingIntent.getActivity(this, 0, intent, 0)
 
-            val build = if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            val build = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 Notification.BubbleMetadata.Builder()
                     .setDesiredHeight(900)
                     .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
@@ -159,7 +121,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 null
             }
-            val build1 = if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            val build1 = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 Person.Builder()
                     .setBot(true)
                     .setName("BubbleBot")
@@ -169,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                 null
             }
             val build2 = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     Notification.Builder(this, "test")
                         .setContentIntent(activity)
                         .setBubbleMetadata(build)
@@ -189,7 +151,7 @@ class MainActivity : AppCompatActivity() {
             notificationManager.notify(1, build2)
             remoteService?.basicTypes(1, 2, true, 0F, 0.0, "")
         }
-        SpringAnimation(imageView, DynamicAnimation.TRANSLATION_Y, 100f).apply {
+        SpringAnimation(activityMainBinding.imageView, DynamicAnimation.TRANSLATION_Y, 100f).apply {
             spring.dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY
             start()
         }
@@ -198,14 +160,20 @@ class MainActivity : AppCompatActivity() {
             stiffness = SpringForce.STIFFNESS_MEDIUM
         }
         xSpringAnimation =
-            SpringAnimation(imageView, DynamicAnimation.TRANSLATION_X).setSpring(springForce)
+            SpringAnimation(
+                activityMainBinding.imageView,
+                DynamicAnimation.TRANSLATION_X
+            ).setSpring(springForce)
         ySpringAnimation =
-            SpringAnimation(imageView, DynamicAnimation.TRANSLATION_Y).setSpring(springForce)
-        imageView.setOnTouchListener { _, event ->
+            SpringAnimation(
+                activityMainBinding.imageView,
+                DynamicAnimation.TRANSLATION_Y
+            ).setSpring(springForce)
+        activityMainBinding.imageView.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    xDiffLeft = event.rawX - imageView.x
-                    yDiffTop = event.rawY - imageView.y
+                    xDiffLeft = event.rawX - activityMainBinding.imageView.x
+                    yDiffTop = event.rawY - activityMainBinding.imageView.y
                     xSpringAnimation.cancel()
                     ySpringAnimation.cancel()
                 }
@@ -215,7 +183,7 @@ class MainActivity : AppCompatActivity() {
                     if (fl < 0) {
                         return@setOnTouchListener false
                     }
-                    imageView.y = fl
+                    activityMainBinding.imageView.y = fl
                 }
                 MotionEvent.ACTION_UP -> {
                     xSpringAnimation.start()
@@ -227,7 +195,7 @@ class MainActivity : AppCompatActivity() {
             }
             false
         }
-        imageView.setOnClickListener {
+        activityMainBinding.imageView.setOnClickListener {
             Toast.makeText(this, "test", Toast.LENGTH_SHORT).show();
         }
 
@@ -242,7 +210,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun createNotify() {
         val settingsFragment = SettingsFragment()
-        supportFragmentManager.beginTransaction().replace(R.id.root,settingsFragment).commit()
+        supportFragmentManager.beginTransaction().replace(R.id.root, settingsFragment).commit()
 //        PermissionDialog().show(supportFragmentManager, "permisson")
 //        val intent = Intent(Intent.ACTION_MAIN, null)
 //        intent.flags = (Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
@@ -284,31 +252,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initListener() {
-        btnDataStore.setOnClickListener {
-            val intent = Intent(this, DataSourceActivity::class.java)
-            startActivity(intent)
+        activityMainBinding.btnDataStore.setOnClickListener {
         }
-        btn.setOnClickListener {
+        activityMainBinding.btn.setOnClickListener {
             Handler().postDelayed({
                 createNotify()
             }, 20000)
 //            val intent = Intent(this, MainActivity2::class.java)
 //            startActivity(intent)
         }
-        glBtn.setOnClickListener {
+        activityMainBinding.glBtn.setOnClickListener {
             startActivity(Intent(this, CameraActivity::class.java))
         }
 
-
-    }
-
-    class Task(private val name: String) : Runnable {
-
-        override fun run() {
-            Thread.sleep(3000)
-            println(name)
-
-        }
 
     }
 }

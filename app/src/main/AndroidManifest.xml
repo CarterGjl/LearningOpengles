@@ -91,7 +91,6 @@
             android:name=".KeyboardActivity"
             android:label="@string/title_activity_keyboard"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".DataSourceActivity" />
         <activity android:name="com.example.camera.camera.CameraActivity"
             android:exported="true">
                         <intent-filter>

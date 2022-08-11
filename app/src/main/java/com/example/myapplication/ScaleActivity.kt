@@ -5,10 +5,8 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import android.view.OrientationEventListener
 import android.view.Surface
 import android.view.View
 import android.view.WindowManager
@@ -17,15 +15,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import com.example.myapplication.databinding.ActivityScaleBinding
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.content_scale.*
-import java.io.File
-import java.util.*
 
 class ScaleActivity : AppCompatActivity() {
 
-    companion object{
+    companion object {
         private const val TAG = "ScaleActivity"
     }
 
@@ -34,14 +29,16 @@ class ScaleActivity : AppCompatActivity() {
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
 //        println("rotation" + wm.defaultDisplay.rotation)
         Surface.ROTATION_90
-        Log.d(TAG, "onConfigurationChanged: "+ wm.defaultDisplay.rotation)
+        Log.d(TAG, "onConfigurationChanged: " + wm.defaultDisplay.rotation)
 
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_scale)
+        val inflate = ActivityScaleBinding.inflate(layoutInflater)
+        setContentView(inflate.root)
         setSupportActionBar(findViewById(R.id.toolbar))
         Surface.ROTATION_90
 //        PopupMenu(this,btnClick).apply {
@@ -58,36 +55,34 @@ class ScaleActivity : AppCompatActivity() {
 //        }
 
 
-
         val registerForActivityResult = registerForActivityResult(
             ActivityResultContracts.OpenDocument()
         ) { it ->
-            if (it == null){
+            if (it == null) {
                 return@registerForActivityResult
             }
             val query = this.contentResolver.query(
                 it,
-                null
-            ,null, null,null)
+                null, null, null, null
+            )
             query?.let {
                 it.moveToFirst()
                 val columnIndex = query.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME)
-                println("RELATIVE_PATH"+query.getString(columnIndex))
+                println("RELATIVE_PATH" + query.getString(columnIndex))
 //                println("DATA"+query.getString(query.getColumnIndex(MediaStore.Images.ImageColumns.DATA)))
                 query.close()
             }
 
 
-
         }
-        popup.setOnClickListener {
+        inflate.content.popup.setOnClickListener {
             popupWindow(it)
         }
 
 //        stack.push("1")
 //        stack.push("2")
 //        stack.push("3")
-        btnClick.setOnClickListener {
+        inflate.content.btnClick.setOnClickListener {
             Toast.makeText(this, getNextShowView(), Toast.LENGTH_SHORT).show();
 //            registerForActivityResult.launch(null)
 //            startActivityForResult(
@@ -133,7 +128,7 @@ class ScaleActivity : AppCompatActivity() {
 
     }
 
-    private fun getNextShowView():String?{
+    private fun getNextShowView(): String? {
 //        return if (!stack.isEmpty()){
 //            stack.pop()
 //            stack.peek()
@@ -142,6 +137,7 @@ class ScaleActivity : AppCompatActivity() {
 //        }
         return null
     }
+
     private fun popupWindow(it: View) {
         val popupMenu = PopupMenu(this, it)
         popupMenu.menuInflater.inflate(R.menu.menu_test, popupMenu.menu)

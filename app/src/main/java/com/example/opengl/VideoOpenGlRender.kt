@@ -43,26 +43,35 @@ class VideoOpenGlRender : OpenglRender() {
     }
 
     private fun initPos() {
+        // 绘制纹理的shader需要顶点数据、纹理顶点数据和纹理。
         // initialize vertex byte buffer for shape coordinates
         getVertices()
-        // initialize byte buffer for the draw list
-        val dlb = ByteBuffer.allocateDirect(drawOrder.size * 2)
-        dlb.order(ByteOrder.nativeOrder())
-        drawListBuffer = dlb.asShortBuffer()
-        drawListBuffer?.put(drawOrder)
-        drawListBuffer?.position(0)
-        val bb2 = ByteBuffer.allocateDirect(TEXTURE_FRONT.size * 4)
-        bb2.order(ByteOrder.nativeOrder())
-        textureVerticesBuffer = bb2.asFloatBuffer()
-        textureVerticesBuffer?.put(TEXTURE_FRONT)
-        textureVerticesBuffer?.position(0)
-
+        // initialize byte buffer for the draw list short 占用2字节
+        getFragmentVertices()
+        // 初始化三角形绘制顺序
+        initDrawOrder()
         mProgram = createProgram()
         // get handle to vertex shader's vPosition member
         // 获取着色器中的属性引用id(传入的字符串就是我们着色器脚本中的属性名)
         mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition")
         mTextureCoordHandle = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate")
 
+    }
+
+    private fun initDrawOrder() {
+        val dlb = ByteBuffer.allocateDirect(drawOrder.size * 2)
+        dlb.order(ByteOrder.nativeOrder())
+        drawListBuffer = dlb.asShortBuffer()
+        drawListBuffer?.put(drawOrder)
+        drawListBuffer?.position(0)
+    }
+
+    private fun getFragmentVertices() {
+        val bb2 = ByteBuffer.allocateDirect(TEXTURE_FRONT.size * 4)
+        bb2.order(ByteOrder.nativeOrder())
+        textureVerticesBuffer = bb2.asFloatBuffer()
+        textureVerticesBuffer?.put(TEXTURE_FRONT)
+        textureVerticesBuffer?.position(0)
     }
 
     /**

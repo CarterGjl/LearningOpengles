@@ -117,7 +117,7 @@ abstract class OpenglRender : HandlerThread("GLRender") {
 
     fun requestRender() {
         handler.post {
-            if (outputSurfaces.isEmpty()) {
+            if (outputSurfaces.isEmpty() || surfaceTexture == null) {
                 return@post
             }
             // 将数据更新到纹理的

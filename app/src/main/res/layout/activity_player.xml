@@ -7,7 +7,9 @@
     tools:context="com.example.camera.player.PlayerActivity">
 
 
-    <include layout="@layout/content_player" />
+    <include
+        android:id="@+id/content"
+        layout="@layout/content_player" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"

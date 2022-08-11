@@ -7,7 +7,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
-import android.hardware.*
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
@@ -27,8 +30,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.expanded.ExpandedItem
 import com.example.expanded.MyExpandedAdapter
-import com.example.myapplication.R
-import kotlinx.android.synthetic.main.activity_media_projection.*
+import com.example.myapplication.databinding.ActivityMediaProjectionBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -62,11 +64,12 @@ class MediaProjectionActivity : AppCompatActivity() {
     }
 
 
-    private var handler:Handler? = null
+    private var handler: Handler? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_media_projection)
+        val inflate = ActivityMediaProjectionBinding.inflate(layoutInflater)
+        setContentView(inflate.root)
         handler = Handler(Looper.getMainLooper()) { message ->
             when (message.arg1) {
                 PERIODIC_TASK -> {
@@ -87,7 +90,7 @@ class MediaProjectionActivity : AppCompatActivity() {
         val message: Message = handler!!.obtainMessage(0)
         message.obj = Runnable {
             Log.d(TAG, "onCreate: ")
-            val nextInt = Random.nextInt(100) +10
+            val nextInt = Random.nextInt(100) + 10
 //            voicLine.setVolume(nextInt)
         }
         message.arg1 = PERIODIC_TASK
@@ -125,24 +128,24 @@ class MediaProjectionActivity : AppCompatActivity() {
 
         }, s, SensorManager.SENSOR_DELAY_UI)
         checkAndRequestPermissions()
-        start.setOnClickListener {
+        inflate.start.setOnClickListener {
 //            startRecording()
 //            var mCamera = Camera.open(1)
 //            for (supportedPreviewSize in mCamera.parameters.supportedPreviewSizes) {
 //                Log.d(TAG, "onCreate: size width ${supportedPreviewSize.width} height ${supportedPreviewSize.height}")
 //            }
         }
-        stop.setOnClickListener {
+        inflate.stop.setOnClickListener {
 //            stopRecording()
             videoEncoder?.stop()
         }
-        capture.setOnClickListener {
+        inflate.capture.setOnClickListener {
             initAudioCapture()
         }
-        rv_ex.layoutManager = LinearLayoutManager(this)
+        inflate.rvEx.layoutManager = LinearLayoutManager(this)
         val myExpandedAdapter = MyExpandedAdapter(this)
         val arrayList = ArrayList<String>()
-        for (i in 0 until 100){
+        for (i in 0 until 100) {
             arrayList.add("$i")
         }
         val expandedItem1 = ExpandedItem<String, String>("1", arrayList)
@@ -153,7 +156,7 @@ class MediaProjectionActivity : AppCompatActivity() {
         myExpandedAdapter.addExpandedItem(expandedItem2)
         myExpandedAdapter.addExpandedItem(expandedItem3)
         myExpandedAdapter.refreshDatas()
-        rv_ex.adapter = myExpandedAdapter
+        inflate.rvEx.adapter = myExpandedAdapter
 
     }
 
