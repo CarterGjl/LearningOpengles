@@ -4,7 +4,6 @@ package com.example.opengl
 
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLUtils
@@ -153,7 +152,15 @@ class VideoOpenGlRender : OpenglRender() {
     private var mPositionHandle = 0
     private var mTextureCoordHandle = 0
 
-    private val drawOrder = shortArrayOf(0, 1, 2, 0, 2, 3) // order to draw vertices
+    // OpenGL ES中绘制任何形状都是通过绘制多个三角形而组成，
+    // 所以我们将这4个点分为2个三角形，分布为（V1,V2,V3）和（V1,V3,V4），
+    // 因此定义三角形索引数组代码如下：
+    private val drawOrder = shortArrayOf(
+        // first Triangle
+        0, 1, 2,
+        // second Triangle
+        0, 2, 3
+    ) // order to draw vertices
 
 
     // number of coordinates per vertex in this array
@@ -233,7 +240,7 @@ class VideoOpenGlRender : OpenglRender() {
         GLES20.glDisableVertexAttribArray(mTextureCoordHandle)
 
 
-        GLES20.glViewport(20, 20, 288, 120);
+        GLES20.glViewport(20, 20, 288, 120)
         waterSignature.drawFrame(loadWaterTexture)
     }
 
