@@ -1,3 +1,2 @@
-include ':livevideo'
 include ':app'
-rootProject.name = "Learning"
+rootProject.name = "LearningOpenGL"

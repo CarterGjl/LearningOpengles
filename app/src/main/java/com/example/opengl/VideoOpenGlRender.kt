@@ -23,8 +23,11 @@ private const val TAG = "VideoGlRender"
 
 class VideoOpenGlRender : OpenglRender() {
 
+    private var matrixLoc: Int = 0
+    private var textureLoc: Int = 0
+    private var mTextureMatrixLoc: Int = 0
     var mTextureId: Int = -1
-
+    var mMatrix = FloatArray(16)
     private var loadWaterTexture: Int = -1
     private lateinit var waterSignature: WaterSignature
 
@@ -35,8 +38,31 @@ class VideoOpenGlRender : OpenglRender() {
         loadWaterTexture = loadTexture(ChatApplication.context, R.drawable.test)
     }
 
+    var mTextureMatrix = FloatArray(16)
+    private var screenWidth = 0
+    private var screenHeight = 0
+    private var cameraWidth = 720
+    private var cameraHeight = 1280
+
     override fun onDrawFrame(output: GLSurface) {
+        screenWidth = output.viewport.width
+        screenHeight = output.viewport.height
+        computeTextureMatrix()
+        Matrix.setIdentityM(mMatrix, 0)
+        Matrix.rotateM(mMatrix,0,180F,0F,1F,0F)
+        Matrix.rotateM(mMatrix,0,90F,0F,0F,1F)
         draw()
+    }
+
+    private fun computeTextureMatrix() {
+        val cameraRatio = cameraWidth / cameraHeight.toFloat()
+        val screenRatio = screenWidth / screenHeight.toFloat()
+        Matrix.setIdentityM(mTextureMatrix, 0)
+        if (cameraRatio > screenRatio) {
+            Matrix.scaleM(mTextureMatrix, 0, 1F, 1 - ((cameraRatio - screenRatio) / 2), 1F)
+        } else if (cameraRatio < screenRatio) {
+            Matrix.scaleM(mTextureMatrix, 0, 1 - ((screenRatio - cameraRatio) / 2),1F , 1F)
+        }
     }
 
     override fun onUpdate() {
@@ -55,6 +81,9 @@ class VideoOpenGlRender : OpenglRender() {
         // 获取着色器中的属性引用id(传入的字符串就是我们着色器脚本中的属性名)
         mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition")
         mTextureCoordHandle = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate")
+        textureLoc = GLES20.glGetUniformLocation(mProgram, "s_Texture")
+        matrixLoc = GLES20.glGetUniformLocation(mProgram, "mMatrix")
+        mTextureMatrixLoc = GLES20.glGetUniformLocation(mProgram, "mTextureMatrix")
 
     }
 
@@ -67,10 +96,10 @@ class VideoOpenGlRender : OpenglRender() {
     }
 
     private fun getFragmentVertices() {
-        val bb2 = ByteBuffer.allocateDirect(TEXTURE_FRONT.size * 4)
+        val bb2 = ByteBuffer.allocateDirect(texBuffer.size * 4)
         bb2.order(ByteOrder.nativeOrder())
         textureVerticesBuffer = bb2.asFloatBuffer()
-        textureVerticesBuffer?.put(TEXTURE_FRONT)
+        textureVerticesBuffer?.put(texBuffer)
         textureVerticesBuffer?.position(0)
     }
 
@@ -136,21 +165,23 @@ class VideoOpenGlRender : OpenglRender() {
 
 
     private val vertexShaderCode = "attribute vec4 vPosition;" +
-            "attribute vec2 inputTextureCoordinate;" +
-            "varying vec2 textureCoordinate;" +
+            "attribute vec4 inputTextureCoordinate;" +
+            "varying vec4 textureCoordinate;" +
+            "uniform mat4 mMatrix;" +
+            "uniform mat4 mTextureMatrix;"+
             "void main()" +
             "{" +
-            "gl_Position = vPosition;" +
-            "textureCoordinate = inputTextureCoordinate;" +
+            "gl_Position = mMatrix * vPosition;" +
+            "textureCoordinate = mTextureMatrix * inputTextureCoordinate;" +
             "}"
 
     private val fragmentShaderCode = """
         #extension GL_OES_EGL_image_external : require
         precision mediump float;
-        varying vec2 textureCoordinate;
+        varying vec4 textureCoordinate;
         uniform samplerExternalOES s_texture;
         void main() {  
-           gl_FragColor = texture2D( s_texture, textureCoordinate );
+           gl_FragColor = texture2D( s_texture, textureCoordinate.xy );
         }
         """.trimIndent()
 
@@ -200,21 +231,30 @@ class VideoOpenGlRender : OpenglRender() {
         1.0f, 0.0f,
         0.0f, 0.0f
     )
+    var texBuffer = floatArrayOf(
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f
+    )
 
 
     private fun draw() {
+
         GLES20.glEnable(GLES20.GL_BLEND)
+
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
         // 激活指定纹理单元
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         // 绑定纹理ID到纹理单元
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId)
+
+
         // 使用某套shader程序
         GLES20.glUseProgram(mProgram)
+        vertexBuffer?.position(0)
         // Enable a handle to the triangle vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle)
-
-        GLES20.glEnableVertexAttribArray(mTextureCoordHandle)
 
         // Prepare the <insert shape here> coordinate data
         // 为画笔指定顶点位置数据(vPosition)
@@ -228,6 +268,10 @@ class VideoOpenGlRender : OpenglRender() {
             vertexBuffer
         )
 
+        GLES20.glEnableVertexAttribArray(mTextureCoordHandle)
+
+
+        textureVerticesBuffer?.position(0)
         GLES20.glVertexAttribPointer(
             mTextureCoordHandle,
             COORDS_PER_VERTEX,
@@ -236,6 +280,10 @@ class VideoOpenGlRender : OpenglRender() {
             vertexStride,
             textureVerticesBuffer
         )
+        GLES20.glUniform1i(textureLoc, 0)
+        GLES20.glUniformMatrix4fv(matrixLoc, 1, false, mMatrix, 0)
+        GLES20.glUniformMatrix4fv(mTextureMatrixLoc, 1, false, mTextureMatrix, 0)
+
         // 绘制
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,

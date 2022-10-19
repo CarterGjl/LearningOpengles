@@ -67,6 +67,6 @@ dependencies {
 // Proto DataStore(确保已引用proto相关依赖)
     implementation  "androidx.datastore:datastore-core:1.0.0"
 //    implementation 'org.webrtc:google-webrtc:1.0.32006'
-    implementation 'org.webrtc:google-webrtc:1.0.20371'
+//    implementation 'org.webrtc:google-webrtc:1.0.20371'
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
 }
